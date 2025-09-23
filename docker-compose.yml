@@ -1,0 +1,32 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SECRET_KEY=your_secret_key_here
+      - DJANGO_DEBUG=TRUE
+      - DATABASE=POSTGRESQL
+      - NAME=mydatabase
+      - USER=mydatabaseuser
+      - PASSWORD=mypassword
+      - HOST=db
+      - PORT=5432
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # если заменить на ./data то бд будет рядом с исходным кодом, что удобно в дебаге
+    environment:
+      - POSTGRES_DB=mydatabase
+      - POSTGRES_USER=mydatabaseuser
+      - POSTGRES_PASSWORD=mypassword
+    ports:
+      - "5432:5432"
+
+volumes:  # если заменяете на ./data, то эти 2 стркои надо удалить
+  postgres_data:
