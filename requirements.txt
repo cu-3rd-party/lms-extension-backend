@@ -3,4 +3,4 @@ djangorestframework
 requests
 beautifulsoup4
 gunicorn
-rest_framework_simplejwt
+djangorestframework-simplejwt
