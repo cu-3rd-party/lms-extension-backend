@@ -1,13 +1,11 @@
-from django.contrib.auth.models import User
 from django.db import models
-from . import *
 
 
 class Longread(models.Model):
-    _id = models.BigIntegerField()
+    lms_id = models.BigIntegerField()
     title = models.CharField(max_length=255)
-    parent_theme = models.ForeignKey(Theme, models.CASCADE)
-    parent_course = models.ForeignKey(Course, models.CASCADE)
+    theme_id = models.BigIntegerField()
+    course_id = models.BigIntegerField()
     contents = models.FileField(upload_to='longreads')
 
     def __str__(self):
