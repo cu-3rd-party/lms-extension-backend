@@ -8,6 +8,7 @@ class Longread(models.Model):
     title = models.CharField(max_length=255)
     parent_theme = models.ForeignKey(Theme, models.CASCADE)
     parent_course = models.ForeignKey(Course, models.CASCADE)
+    contents = models.FileField(upload_to='longreads')
 
     def __str__(self):
         return f"{self.title}"

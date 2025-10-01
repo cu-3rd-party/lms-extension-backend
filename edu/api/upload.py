@@ -2,11 +2,14 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.request import Request
+from ninja import Router
 
 import requests
 
 from ..services import *
 from ..models import *
+
+router = Router()
 
 @api_view(['POST'])
 def upload(request: Request):
@@ -43,7 +46,7 @@ def upload(request: Request):
     longread_obj.parent_course = course_obj
 
     downloaded_data = requests.get(download_link, timeout=20)
-    # TODO: store downloaded data somewhere
+    longread_obj.contents = downloaded_data
 
     return Response({
         'message': 'you have used upload endpoint',
