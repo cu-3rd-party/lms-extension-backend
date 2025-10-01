@@ -4,14 +4,14 @@ from ninja import Router
 import requests
 
 from ..schema import *
-from ..schema.longread import UploadLongreadRequest, LongreadConciseOut
+from ..schema.longread import UploadLongreadRequest, LongreadConciseOut, LongreadIDOut
 from ..services import *
 from ..models import *
 
 router = Router()
 
 
-@router.post("course/", response={201: Message, 403: Message})
+@router.post("course/", response={201: Message, 403: Message, 500: Message})
 def upload_longread_api(request, body: UploadLongreadRequest):
     if not verify_download_link(body.download_link):
         return 403, Message(message="You have provided invalid download link")
@@ -24,7 +24,7 @@ def upload_longread_api(request, body: UploadLongreadRequest):
     filename = f"{body.longread_id}.pdf"
     longread_obj = Longread(
         lms_id=body.longread_id,
-        title=body.title,
+        title=body.longread_title,
         theme_id=body.theme_id,
         course_id=body.course_id,
     )
@@ -38,7 +38,7 @@ def full_get_longread_api(request, course_id: int, theme_id: int, longread_id: i
     longread_obj = Longread.objects.filter(
         course_id=course_id,
         theme_id=theme_id,
-        longread_id=longread_id
+        lms_id=longread_id
     )
     if not longread_obj.exists():
         return 404, NotFoundError()
@@ -56,9 +56,13 @@ def get_course(request, course_id: int):
     if not longreads.exists():
         return 404, NotFoundError()
 
-    return 200, [longreads.all()]
+    return 200, [LongreadConciseOut(
+                    longread_id=i.lms_id,
+                    theme_id=i.theme_id,
+                    course_id=i.course_id,
+        ) for i in longreads.all()]
 
-@router.get("course/{course_id}/theme/{theme_id}/", response={200: list[LongreadConciseOut], 404: NotFoundError})
+@router.get("course/{course_id}/theme/{theme_id}/", response={200: list[LongreadIDOut], 404: NotFoundError})
 def get_theme(request, course_id: int, theme_id: int):
     longreads = Longread.objects.filter(
         course_id=course_id,
@@ -67,4 +71,4 @@ def get_theme(request, course_id: int, theme_id: int):
     if not longreads.exists():
         return 404, NotFoundError()
 
-    return 200, [longreads.all()]
+    return 200, [LongreadIDOut(id=i.lms_id) for i in longreads.all()]

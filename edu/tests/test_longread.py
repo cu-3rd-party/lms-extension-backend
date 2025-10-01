@@ -1,0 +1,138 @@
+from rest_framework.test import APITestCase, APIClient
+from rest_framework import status
+from django.urls import reverse
+from django.core.files.base import ContentFile
+from unittest.mock import patch, MagicMock
+
+from ..models import Longread
+
+
+class TestUploadLongreadAPI(APITestCase):
+    client: APIClient
+
+    def setUp(self):
+        self.valid_body = {
+            "longread_id": 123,
+            "title": "Test Longread",
+            "theme_id": 10,
+            "course_id": 20,
+            "download_link": "http://example.com/file.pdf",
+        }
+
+    @patch("edu.api.longread.verify_download_link", return_value=True)
+    @patch("edu.api.longread.requests.get")
+    def test_upload_longread_success(self, mock_get, mock_verify):
+        # Mock a successful download
+        mock_get.return_value = MagicMock(status_code=200, content=b"PDFDATA")
+
+        url = reverse("api-1.0.0:upload_longread_api")
+        response = self.client.post(url, self.valid_body, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.json()["message"], "Longread uploaded successfully")
+        self.assertTrue(Longread.objects.filter(lms_id=123).exists())
+
+    @patch("edu.api.longread.verify_download_link", return_value=False)
+    def test_upload_longread_invalid_link(self, mock_verify):
+        url = reverse("api-1.0.0:upload_longread_api")
+        response = self.client.post(url, self.valid_body, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.json()["message"], "You have provided invalid download link")
+
+    @patch("edu.api.longread.verify_download_link", return_value=True)
+    @patch("edu.api.longread.requests.get")
+    def test_upload_longread_failed_download(self, mock_get, mock_verify):
+        mock_get.return_value = MagicMock(status_code=500)
+
+        url = reverse("api-1.0.0:upload_longread_api")
+        response = self.client.post(url, self.valid_body, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.json()["message"], "Failed to download file from the provided link")
+
+
+class TestFullGetLongreadAPI(APITestCase):
+    client: APIClient
+
+    def setUp(self):
+        self.longread = Longread.objects.create(
+            lms_id=1,
+            title="Existing Longread",
+            theme_id=2,
+            course_id=3,
+        )
+        self.longread.contents.save("test.pdf", ContentFile(b"TESTDATA"))
+
+    def test_full_get_longread_success(self):
+        url = reverse("api-1.0.0:full_get_longread_api",
+                      kwargs={"course_id": 3, "theme_id": 2, "longread_id": 1})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("contents", response.json())
+        self.assertEqual(response.json()["contents"], "TESTDATA")
+
+    def test_full_get_longread_not_found(self):
+        url = reverse("api-1.0.0:full_get_longread_api",
+                      kwargs={"course_id": 99, "theme_id": 99, "longread_id": 99})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class TestGetCourseAPI(APITestCase):
+    client: APIClient
+
+    def setUp(self):
+        self.course_id = 42
+        self.longread = Longread.objects.create(
+            lms_id=2,
+            title="Course Longread",
+            theme_id=1,
+            course_id=self.course_id,
+        )
+
+    def test_get_course_success(self):
+        url = reverse("api-1.0.0:get_course", kwargs={"course_id": self.course_id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response.json(), list)
+        self.assertGreater(len(response.json()), 0)
+
+    def test_get_course_not_found(self):
+        url = reverse("api-1.0.0:get_course", kwargs={"course_id": 999})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class TestGetThemeAPI(APITestCase):
+    client: APIClient
+
+    def setUp(self):
+        self.course_id = 50
+        self.theme_id = 5
+        self.longread = Longread.objects.create(
+            lms_id=3,
+            title="Theme Longread",
+            theme_id=self.theme_id,
+            course_id=self.course_id,
+        )
+
+    def test_get_theme_success(self):
+        url = reverse("api-1.0.0:get_theme",
+                      kwargs={"course_id": self.course_id, "theme_id": self.theme_id})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsInstance(response.json(), list)
+        self.assertGreater(len(response.json()), 0)
+
+    def test_get_theme_not_found(self):
+        url = reverse("api-1.0.0:get_theme",
+                      kwargs={"course_id": 999, "theme_id": 999})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

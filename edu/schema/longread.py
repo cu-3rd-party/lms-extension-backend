@@ -12,8 +12,10 @@ class UploadLongreadRequest(Schema):
     theme_title: str | None = None
     longread_title: str | None = None
 
-class LongreadConciseOut(ModelSchema):
-    class Meta:
-        model = Longread
-        fields = ['lms_id']
-        # fields_optional = '__all__'
+class LongreadIDOut(Schema):
+    id: int
+
+class LongreadConciseOut(Schema):
+    longread_id: int
+    theme_id: int
+    course_id: int
