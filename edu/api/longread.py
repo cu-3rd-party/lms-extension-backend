@@ -12,7 +12,7 @@ router = Router()
 
 
 @router.post("course/", response={201: Message, 403: Message, 500: Message})
-def upload_longread_api(request, body: UploadLongreadRequest):
+def upload_longread(request, body: UploadLongreadRequest):
     if not verify_download_link(body.download_link):
         return 403, Message(message="You have provided invalid download link")
 
@@ -34,7 +34,7 @@ def upload_longread_api(request, body: UploadLongreadRequest):
 
 
 @router.get("course/{course_id}/theme/{theme_id}/longread/{longread_id}/", response={200: BaseFile, 404: NotFoundError})
-def full_get_longread_api(request, course_id: int, theme_id: int, longread_id: int):
+def full_get_longread(request, course_id: int, theme_id: int, longread_id: int):
     longread_obj = Longread.objects.filter(
         course_id=course_id,
         theme_id=theme_id,

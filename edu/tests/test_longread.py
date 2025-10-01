@@ -25,7 +25,7 @@ class TestUploadLongreadAPI(APITestCase):
         # Mock a successful download
         mock_get.return_value = MagicMock(status_code=200, content=b"PDFDATA")
 
-        url = reverse("api-1.0.0:upload_longread_api")
+        url = reverse("api-1.0.0:upload_longread")
         response = self.client.post(url, self.valid_body, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -34,7 +34,7 @@ class TestUploadLongreadAPI(APITestCase):
 
     @patch("edu.api.longread.verify_download_link", return_value=False)
     def test_upload_longread_invalid_link(self, mock_verify):
-        url = reverse("api-1.0.0:upload_longread_api")
+        url = reverse("api-1.0.0:upload_longread")
         response = self.client.post(url, self.valid_body, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -45,7 +45,7 @@ class TestUploadLongreadAPI(APITestCase):
     def test_upload_longread_failed_download(self, mock_get, mock_verify):
         mock_get.return_value = MagicMock(status_code=500)
 
-        url = reverse("api-1.0.0:upload_longread_api")
+        url = reverse("api-1.0.0:upload_longread")
         response = self.client.post(url, self.valid_body, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -65,7 +65,7 @@ class TestFullGetLongreadAPI(APITestCase):
         self.longread.contents.save("test.pdf", ContentFile(b"TESTDATA"))
 
     def test_full_get_longread_success(self):
-        url = reverse("api-1.0.0:full_get_longread_api",
+        url = reverse("api-1.0.0:full_get_longread",
                       kwargs={"course_id": 3, "theme_id": 2, "longread_id": 1})
         response = self.client.get(url)
 
@@ -74,7 +74,7 @@ class TestFullGetLongreadAPI(APITestCase):
         self.assertEqual(response.json()["contents"], "TESTDATA")
 
     def test_full_get_longread_not_found(self):
-        url = reverse("api-1.0.0:full_get_longread_api",
+        url = reverse("api-1.0.0:full_get_longread",
                       kwargs={"course_id": 99, "theme_id": 99, "longread_id": 99})
         response = self.client.get(url)
 
