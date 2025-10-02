@@ -1,8 +1,9 @@
-from rest_framework.test import APITestCase, APIClient
-from rest_framework import status
-from django.urls import reverse
-from django.core.files.base import ContentFile
 from unittest.mock import patch, MagicMock
+
+from django.core.files.base import ContentFile
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APITestCase, APIClient
 
 from ..models import Longread
 
@@ -137,8 +138,10 @@ class TestGetThemeAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
+
 class TestGetAvailableInfoAPI(APITestCase):
     client: APIClient
+
     def setUp(self):
         self.course_id_1 = 10
         self.theme_id_1 = 5
@@ -168,6 +171,7 @@ class TestGetAvailableInfoAPI(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.json(), list)
         self.assertEqual(len(response.json()), len(self.longreads))
+
 
 class TestFetchLongreadsAPI(APITestCase):
     client: APIClient

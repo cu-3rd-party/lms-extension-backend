@@ -1,13 +1,12 @@
+import requests
 from django.core.files.base import ContentFile
 from ninja import Router
 
-import requests
-
+from ..models import *
 from ..schema import *
 from ..schema.longread import UploadLongreadRequest, LongreadConciseOut, LongreadIDOut, FetchLongreadsRequest, \
     MissingLongreads
 from ..services import *
-from ..models import *
 
 router = Router()
 
@@ -49,14 +48,16 @@ def get_longread_contents(request, course_id: int, theme_id: int, longread_id: i
 
     return 200, BaseFile(contents=data)
 
+
 @router.get("courses/", response={200: list[LongreadConciseOut]})
 def get_available_info(request):
     longreads = Longread.objects.all()
     return 200, [LongreadConciseOut(
-                    longread_id=i.lms_id,
-                    theme_id=i.theme_id,
-                    course_id=i.course_id,
-        ) for i in longreads.all()]
+        longread_id=i.lms_id,
+        theme_id=i.theme_id,
+        course_id=i.course_id,
+    ) for i in longreads.all()]
+
 
 @router.get("course/{course_id}/", response={200: list[LongreadConciseOut], 404: NotFoundError})
 def get_course(request, course_id: int):
@@ -67,10 +68,11 @@ def get_course(request, course_id: int):
         return 404, NotFoundError()
 
     return 200, [LongreadConciseOut(
-                    longread_id=i.lms_id,
-                    theme_id=i.theme_id,
-                    course_id=i.course_id,
-        ) for i in longreads.all()]
+        longread_id=i.lms_id,
+        theme_id=i.theme_id,
+        course_id=i.course_id,
+    ) for i in longreads.all()]
+
 
 @router.get("course/{course_id}/theme/{theme_id}/", response={200: list[LongreadIDOut], 404: NotFoundError})
 def get_theme(request, course_id: int, theme_id: int):
@@ -82,6 +84,7 @@ def get_theme(request, course_id: int, theme_id: int):
         return 404, NotFoundError()
 
     return 200, [LongreadIDOut(id=i.lms_id) for i in longreads.all()]
+
 
 @router.post("fetch/", response={200: MissingLongreads})
 def fetch_longreads(request, body: FetchLongreadsRequest):

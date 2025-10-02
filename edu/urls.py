@@ -1,6 +1,6 @@
-from django.urls import path
-from .api import *
 from ninja import Router
+
+from .api import *
 
 router = Router()
 router.add_router("ping/", ping_router)
