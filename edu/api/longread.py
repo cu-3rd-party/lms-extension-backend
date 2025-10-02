@@ -4,7 +4,8 @@ from ninja import Router
 import requests
 
 from ..schema import *
-from ..schema.longread import UploadLongreadRequest, LongreadConciseOut, LongreadIDOut
+from ..schema.longread import UploadLongreadRequest, LongreadConciseOut, LongreadIDOut, FetchLongreadsRequest, \
+    MissingLongreads
 from ..services import *
 from ..models import *
 
@@ -81,3 +82,26 @@ def get_theme(request, course_id: int, theme_id: int):
         return 404, NotFoundError()
 
     return 200, [LongreadIDOut(id=i.lms_id) for i in longreads.all()]
+
+@router.post("fetch/", response={200: MissingLongreads})
+def fetch_longreads(request, body: FetchLongreadsRequest):
+    triples = []
+    for course in body.courses:
+        for theme in course.themes:
+            for longread_id in theme.longreads:
+                triples.append((course.course_id, theme.theme_id, longread_id))
+
+    if not triples:
+        return 200, {"missing_longreads": []}
+
+    existing = set(
+        Longread.objects.filter(
+            course_id__in=[c for c, _, _ in triples],
+            theme_id__in=[t for _, t, _ in triples],
+            lms_id__in=[l for _, _, l in triples],
+        ).values_list("course_id", "theme_id", "lms_id")
+    )
+
+    missing = [l for (c, t, l) in triples if (c, t, l) not in existing]
+
+    return 200, {"missing_longreads": missing}

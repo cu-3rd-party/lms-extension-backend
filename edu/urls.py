@@ -4,7 +4,7 @@ from ninja import Router
 
 router = Router()
 router.add_router("ping/", ping_router)
-router.add_router("upload/", upload_router)
+router.add_router("/", upload_router)
 
 urlpatterns = [
     # path("ping/", ping, name="ping"),
