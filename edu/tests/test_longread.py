@@ -168,3 +168,83 @@ class TestGetAvailableInfoAPI(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIsInstance(response.json(), list)
         self.assertEqual(len(response.json()), len(self.longreads))
+
+class TestFetchLongreadsAPI(APITestCase):
+    client: APIClient
+
+    def setUp(self):
+        self.url = reverse("api-1.0.0:fetch_longreads")  # adjust namespace if needed
+        self.valid_body = {
+            "courses": [
+                {
+                    "course_id": 1,
+                    "themes": [
+                        {"theme_id": 10, "longreads": [100, 101]},
+                        {"theme_id": 11, "longreads": [102]},
+                    ],
+                }
+            ]
+        }
+
+    def test_fetch_with_no_triples(self):
+        body = {"courses": []}
+        response = self.client.post(self.url, body, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), {"missing_longreads": []})
+
+    def test_fetch_with_all_missing_longreads(self):
+        # No Longread objects exist yet
+        response = self.client.post(self.url, self.valid_body, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertCountEqual(
+            response.json()["missing_longreads"],
+            [100, 101, 102],
+        )
+
+    def test_fetch_with_some_existing_longreads(self):
+        # Create one longread to simulate existence
+        Longread.objects.create(
+            lms_id=100, course_id=1, theme_id=10, title="Existing longread"
+        )
+
+        response = self.client.post(self.url, self.valid_body, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # 100 exists, so only 101 and 102 should be missing
+        self.assertCountEqual(
+            response.json()["missing_longreads"],
+            [101, 102],
+        )
+
+    def test_fetch_with_all_existing_longreads(self):
+        # Create all longreads
+        Longread.objects.bulk_create([
+            Longread(lms_id=100, course_id=1, theme_id=10, title="LR1"),
+            Longread(lms_id=101, course_id=1, theme_id=10, title="LR2"),
+            Longread(lms_id=102, course_id=1, theme_id=11, title="LR3"),
+        ])
+
+        response = self.client.post(self.url, self.valid_body, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["missing_longreads"], [])
+
+    def test_fetch_with_multiple_courses(self):
+        body = {
+            "courses": [
+                {"course_id": 1, "themes": [{"theme_id": 10, "longreads": [200]}]},
+                {"course_id": 2, "themes": [{"theme_id": 20, "longreads": [300, 301]}]},
+            ]
+        }
+        Longread.objects.create(lms_id=200, course_id=1, theme_id=10, title="LR200")
+
+        response = self.client.post(self.url, body, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # 200 exists, but 300 and 301 are missing
+        self.assertCountEqual(
+            response.json()["missing_longreads"],
+            [300, 301],
+        )

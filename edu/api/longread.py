@@ -12,7 +12,7 @@ from ..models import *
 router = Router()
 
 
-@router.post("course/", response={201: Message, 403: Message, 500: Message})
+@router.post("upload/", response={201: Message, 403: Message, 500: Message})
 def upload_longread(request, body: UploadLongreadRequest):
     if not verify_download_link(body.download_link):
         return 403, Message(message="You have provided invalid download link")
