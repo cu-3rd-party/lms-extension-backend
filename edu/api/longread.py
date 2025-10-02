@@ -34,7 +34,7 @@ def upload_longread(request, body: UploadLongreadRequest):
 
 
 @router.get("course/{course_id}/theme/{theme_id}/longread/{longread_id}/", response={200: BaseFile, 404: NotFoundError})
-def full_get_longread(request, course_id: int, theme_id: int, longread_id: int):
+def get_longread_contents(request, course_id: int, theme_id: int, longread_id: int):
     longread_obj = Longread.objects.filter(
         course_id=course_id,
         theme_id=theme_id,
@@ -47,6 +47,15 @@ def full_get_longread(request, course_id: int, theme_id: int, longread_id: int):
         data = contents.read()
 
     return 200, BaseFile(contents=data)
+
+@router.get("courses/", response={200: list[LongreadConciseOut]})
+def get_available_info(request):
+    longreads = Longread.objects.all()
+    return 200, [LongreadConciseOut(
+                    longread_id=i.lms_id,
+                    theme_id=i.theme_id,
+                    course_id=i.course_id,
+        ) for i in longreads.all()]
 
 @router.get("course/{course_id}/", response={200: list[LongreadConciseOut], 404: NotFoundError})
 def get_course(request, course_id: int):

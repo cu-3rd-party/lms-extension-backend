@@ -64,8 +64,8 @@ class TestFullGetLongreadAPI(APITestCase):
         )
         self.longread.contents.save("test.pdf", ContentFile(b"TESTDATA"))
 
-    def test_full_get_longread_success(self):
-        url = reverse("api-1.0.0:full_get_longread",
+    def test_get_longread_contents_success(self):
+        url = reverse("api-1.0.0:get_longread_contents",
                       kwargs={"course_id": 3, "theme_id": 2, "longread_id": 1})
         response = self.client.get(url)
 
@@ -73,8 +73,8 @@ class TestFullGetLongreadAPI(APITestCase):
         self.assertIn("contents", response.json())
         self.assertEqual(response.json()["contents"], "TESTDATA")
 
-    def test_full_get_longread_not_found(self):
-        url = reverse("api-1.0.0:full_get_longread",
+    def test_get_longread_contents_not_found(self):
+        url = reverse("api-1.0.0:get_longread_contents",
                       kwargs={"course_id": 99, "theme_id": 99, "longread_id": 99})
         response = self.client.get(url)
 
@@ -136,3 +136,35 @@ class TestGetThemeAPI(APITestCase):
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+class TestGetAvailableInfoAPI(APITestCase):
+    client: APIClient
+    def setUp(self):
+        self.course_id_1 = 10
+        self.theme_id_1 = 5
+        self.course_id_2 = 15
+        self.theme_id_2 = 5
+        self.longreads = [Longread.objects.create(
+            lms_id=1,
+            title="test1",
+            theme_id=self.theme_id_1,
+            course_id=self.course_id_1,
+        ), Longread.objects.create(
+            lms_id=2,
+            title="test2",
+            theme_id=self.theme_id_1,
+            course_id=self.course_id_1,
+        ), Longread.objects.create(
+            lms_id=3,
+            title="test3",
+            theme_id=self.theme_id_2,
+            course_id=self.course_id_2,
+        )]
+
+    def test_get_all_longreads_success(self):
+        url = reverse("api-1.0.0:get_available_info")
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsInstance(response.json(), list)
+        self.assertEqual(len(response.json()), len(self.longreads))
