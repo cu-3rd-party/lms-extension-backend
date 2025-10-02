@@ -16,4 +16,4 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--workers=4", "--bind=0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-", "myapp.wsgi:application"]
+CMD ["gunicorn", "--workers=4", "--bind=0.0.0.0:8000", "--access-logfile", "-", "--error-logfile", "-", "lms_extension_backend.wsgi:application"]
