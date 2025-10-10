@@ -1,7 +1,7 @@
 import requests
 from django.core.files.base import ContentFile
 from ninja import Router
-
+import base64
 from ..models import *
 from ..schema import *
 from ..schema.longread import UploadLongreadRequest, LongreadConciseOut, LongreadIDOut, FetchLongreadsRequest, \
@@ -39,14 +39,17 @@ def get_longread_contents(request, course_id: int, theme_id: int, longread_id: i
         course_id=course_id,
         theme_id=theme_id,
         lms_id=longread_id
-    )
-    if not longread_obj.exists():
-        return 404, NotFoundError()
-    longread_obj = longread_obj.first()
-    with longread_obj.contents.open("r") as contents:
-        data = contents.read()
+    ).first()
 
-    return 200, BaseFile(contents=data)
+    if not longread_obj:
+        return 404, NotFoundError()
+
+    with longread_obj.contents.open("rb") as contents: # Open in binary read mode
+        binary_data = contents.read()
+        # Encode binary data to a Base64 string to safely include in JSON
+        base64_encoded_data = base64.b64encode(binary_data).decode('utf-8')
+
+    return 200, BaseFile(contents=base64_encoded_data, filename=longread_obj.contents.name)
 
 
 @router.get("courses/", response={200: list[LongreadConciseOut]})

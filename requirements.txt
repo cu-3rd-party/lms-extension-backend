@@ -4,3 +4,4 @@ requests
 beautifulsoup4
 gunicorn
 django-ninja
+django-cors-headers
