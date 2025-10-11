@@ -13,12 +13,16 @@ class UploadLongreadRequest(Schema):
 
 class LongreadIDOut(Schema):
     id: int
+    title: str | None = None
 
 
 class LongreadConciseOut(Schema):
     longread_id: int
+    longread_title: str | None = None
     theme_id: int
+    theme_title: str | None = None
     course_id: int
+    course_title: str | None = None
 
 
 class ThemeOverview(Schema):
