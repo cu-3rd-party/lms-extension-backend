@@ -2,6 +2,11 @@ name: CRLF Check and Convert
 
 on:
   push:
+    paths:
+      - "*.py"
+      - "*.sh"
+      - "*.yml"
+      - "*.txt"
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
 
@@ -37,10 +42,8 @@ jobs:
       - name: Convert CRLF to LF if found
         if: env.crlf_found == 'true'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y dos2unix
           echo "Converting CRLF to LF..."
-          find . -type f -not -path "./.git/*" -exec dos2unix {} \;
+          find . -type f -not -path "./.git/*" -exec sed -i 's/\r$//' {} \;
 
       - name: Commit and push changes
         if: env.crlf_found == 'true'
