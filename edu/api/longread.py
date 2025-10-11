@@ -45,7 +45,7 @@ def upload_longread(request, body: UploadLongreadRequest):
     response={200: BaseFile, 404: NotFoundError},
 )
 def get_longread_contents(
-        request, course_id: int, theme_id: int, longread_id: int
+    request, course_id: int, theme_id: int, longread_id: int
 ):
     longread_obj = Longread.objects.filter(
         course_id=course_id, theme_id=theme_id, lms_id=longread_id
