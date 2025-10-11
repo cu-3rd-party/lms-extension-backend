@@ -1,13 +1,16 @@
-name: CRLF Check
+name: CRLF Check and Convert
 
 on:
   push:
   pull_request:
-    types: [ opened, reopened, synchronize, ready_for_review ]
+    types: [opened, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    name: CRLF Check
+    name: CRLF Check and Convert
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
 
@@ -16,10 +19,39 @@ jobs:
         python-version: [3.12]
 
     steps:
-    - uses: actions/checkout@v4.2.2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Check for CRLF
-      run: python tools/check_crlf.py
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run CRLF Check
+        id: check
+        run: |
+          python .github/tools/check_crlf.py || echo "crlf_found=true" >> $GITHUB_ENV
+
+      - name: Convert CRLF to LF if found
+        if: env.crlf_found == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dos2unix
+          echo "Converting CRLF to LF..."
+          find . -type f -not -path "./.git/*" -exec dos2unix {} \;
+
+      - name: Commit and push changes
+        if: env.crlf_found == 'true'
+        run: |
+          echo "Committing converted files..."
+          git config user.name "Igor Mamaev"
+          git config user.email "igor.mamaev1@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No line ending changes found."
+          else
+            git commit -m "Convert line endings to LF"
+            git push
+          fi
