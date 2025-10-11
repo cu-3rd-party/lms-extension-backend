@@ -22,28 +22,17 @@ def upload_longread(request, body: UploadLongreadRequest):
         return 403, Message(message="You have provided invalid download link")
 
     resp = requests.get(body.download_link, timeout=20)
-    if resp.status_code != 200:
-        return 500, Message(
-            message="Failed to download file from the provided link"
-        )
+    if resp.status_code != 200: return 500, Message( message="Failed to download file from the provided link" )
 
     # longread_obj.contents = downloaded_data
     filename = f"{body.longread_id}.pdf"
-    longread_obj = Longread(
-        lms_id=body.longread_id,
-        title=body.longread_title,
-        theme_id=body.theme_id,
-        course_id=body.course_id,
-    )
+    longread_obj = Longread( lms_id=body.longread_id, title=body.longread_title, theme_id=body.theme_id, course_id=body.course_id, )
     longread_obj.contents.save(filename, ContentFile(resp.content))
 
     return 201, Message(message="Longread uploaded successfully")
 
 
-@router.get(
-    "course/{course_id}/theme/{theme_id}/longread/{longread_id}/",
-    response={200: BaseFile, 404: NotFoundError},
-)
+@router.get( "course/{course_id}/theme/{theme_id}/longread/{longread_id}/", response={200: BaseFile, 404: NotFoundError}, )
 def get_longread_contents(
     request, course_id: int, theme_id: int, longread_id: int
 ):
