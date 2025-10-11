@@ -19,9 +19,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Run ruff format
-        uses: astral-sh/ruff-action@v3
-        run: |
+      - uses: astral-sh/ruff-action@v3
+      - run: |
           ruff format
           git config user.name "Igor Mamaev"
           git config user.email "igor.mamaev1@gmail.com"
