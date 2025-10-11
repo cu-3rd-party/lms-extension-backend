@@ -1,0 +1,17 @@
+name: ruff.yml
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+jobs:
+  check-formatting:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: [3.12]
+
+    steps:
+    - name: ruff-action
+      uses: astral-sh/ruff-action@v3.5.1
