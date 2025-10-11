@@ -21,5 +21,14 @@ jobs:
 
       - name: Run ruff format
         uses: astral-sh/ruff-action@v3
-        with:
-          args: "format --check --diff"
+        run: |
+          ruff format
+          git config user.name "Igor Mamaev"
+          git config user.email "igor.mamaev1@gmail.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No wrongly formatted files found."
+          else
+            git commit -m "Run Ruff format"
+            git push
+          fi
