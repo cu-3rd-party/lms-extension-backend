@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
+
 import os
 from datetime import timedelta
 from pathlib import Path
@@ -19,16 +20,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
-SECRET_KEY = 'django-insecure-zw-z1o&^k7q(g5179mpzqin+@8-l!w8(p#$8)_$p!1yavau@zf'
-key = os.environ.get('DJANGO_SECRET_KEY')
-if key:
-    SECRET_KEY = key
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-zw-z1o&^k7q(g5179mpzqin+@8-l!w8(p#$8)_$p!1yavau@zf",
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-debug = os.environ.get('DJANGO_DEBUG')
-if debug:
-    DEBUG = debug.lower() == 'true'
+DEBUG = os.environ.get("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -40,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "edu"
+    "edu",
 ]
 
 MIDDLEWARE = [
@@ -58,8 +56,7 @@ ROOT_URLCONF = "lms_extension_backend.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'templates']
-        ,
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -78,27 +75,37 @@ WSGI_APPLICATION = "lms_extension_backend.wsgi.application"
 
 # Default value
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
 }
 # Handling environmental variables according to README.md
-database = os.environ.get('DATABASE')
+database = os.environ.get("DATABASE")
 if not database:
-    if database == 'SQLITE3':
-        DATABASES['default'] = {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3' if not os.environ['NAME'] else os.environ['NAME'],
+    if database == "SQLITE3":
+        DATABASES["default"] = {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3"
+            if not os.environ["NAME"]
+            else os.environ["NAME"],
         }
-    elif database == 'POSTRESQL':
-        DATABASES['default'] = {
+    elif database == "POSTRESQL":
+        DATABASES["default"] = {
             "ENGINE": "django.db.backends.postgresql",
-            "NAME": "mydatabase" if not os.environ['NAME'] else os.environ['NAME'],
-            "USER": "mydatabaseuser" if not os.environ['USER'] else os.environ['USER'],
-            "PASSWORD": "mypassword" if not os.environ['PASSWORD'] else os.environ['PASSWORD'],
-            "HOST": "127.0.0.1" if not os.environ['HOST'] else os.environ['HOST'],
-            "PORT": "5432" if not os.environ['PORT'] else os.environ['PORT'],
+            "NAME": "mydatabase"
+            if not os.environ["NAME"]
+            else os.environ["NAME"],
+            "USER": "mydatabaseuser"
+            if not os.environ["USER"]
+            else os.environ["USER"],
+            "PASSWORD": "mypassword"
+            if not os.environ["PASSWORD"]
+            else os.environ["PASSWORD"],
+            "HOST": "127.0.0.1"
+            if not os.environ["HOST"]
+            else os.environ["HOST"],
+            "PORT": "5432" if not os.environ["PORT"] else os.environ["PORT"],
         }
 
 # Password validation

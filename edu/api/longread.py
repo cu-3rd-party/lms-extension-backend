@@ -4,8 +4,13 @@ from ninja import Router
 
 from ..models import *
 from ..schema import *
-from ..schema.longread import UploadLongreadRequest, LongreadConciseOut, LongreadIDOut, FetchLongreadsRequest, \
-    MissingLongreads
+from ..schema.longread import (
+    UploadLongreadRequest,
+    LongreadConciseOut,
+    LongreadIDOut,
+    FetchLongreadsRequest,
+    MissingLongreads,
+)
 from ..services import *
 
 router = Router()
@@ -18,7 +23,9 @@ def upload_longread(request, body: UploadLongreadRequest):
 
     resp = requests.get(body.download_link, timeout=20)
     if resp.status_code != 200:
-        return 500, Message(message="Failed to download file from the provided link")
+        return 500, Message(
+            message="Failed to download file from the provided link"
+        )
 
     # longread_obj.contents = downloaded_data
     filename = f"{body.longread_id}.pdf"
@@ -33,12 +40,15 @@ def upload_longread(request, body: UploadLongreadRequest):
     return 201, Message(message="Longread uploaded successfully")
 
 
-@router.get("course/{course_id}/theme/{theme_id}/longread/{longread_id}/", response={200: BaseFile, 404: NotFoundError})
-def get_longread_contents(request, course_id: int, theme_id: int, longread_id: int):
+@router.get(
+    "course/{course_id}/theme/{theme_id}/longread/{longread_id}/",
+    response={200: BaseFile, 404: NotFoundError},
+)
+def get_longread_contents(
+        request, course_id: int, theme_id: int, longread_id: int
+):
     longread_obj = Longread.objects.filter(
-        course_id=course_id,
-        theme_id=theme_id,
-        lms_id=longread_id
+        course_id=course_id, theme_id=theme_id, lms_id=longread_id
     )
     if not longread_obj.exists():
         return 404, NotFoundError()
@@ -52,14 +62,20 @@ def get_longread_contents(request, course_id: int, theme_id: int, longread_id: i
 @router.get("courses/", response={200: list[LongreadConciseOut]})
 def get_available_info(request):
     longreads = Longread.objects.all()
-    return 200, [LongreadConciseOut(
-        longread_id=i.lms_id,
-        theme_id=i.theme_id,
-        course_id=i.course_id,
-    ) for i in longreads.all()]
+    return 200, [
+        LongreadConciseOut(
+            longread_id=i.lms_id,
+            theme_id=i.theme_id,
+            course_id=i.course_id,
+        )
+        for i in longreads.all()
+    ]
 
 
-@router.get("course/{course_id}/", response={200: list[LongreadConciseOut], 404: NotFoundError})
+@router.get(
+    "course/{course_id}/",
+    response={200: list[LongreadConciseOut], 404: NotFoundError},
+)
 def get_course(request, course_id: int):
     longreads = Longread.objects.filter(
         course_id=course_id,
@@ -67,14 +83,20 @@ def get_course(request, course_id: int):
     if not longreads.exists():
         return 404, NotFoundError()
 
-    return 200, [LongreadConciseOut(
-        longread_id=i.lms_id,
-        theme_id=i.theme_id,
-        course_id=i.course_id,
-    ) for i in longreads.all()]
+    return 200, [
+        LongreadConciseOut(
+            longread_id=i.lms_id,
+            theme_id=i.theme_id,
+            course_id=i.course_id,
+        )
+        for i in longreads.all()
+    ]
 
 
-@router.get("course/{course_id}/theme/{theme_id}/", response={200: list[LongreadIDOut], 404: NotFoundError})
+@router.get(
+    "course/{course_id}/theme/{theme_id}/",
+    response={200: list[LongreadIDOut], 404: NotFoundError},
+)
 def get_theme(request, course_id: int, theme_id: int):
     longreads = Longread.objects.filter(
         course_id=course_id,

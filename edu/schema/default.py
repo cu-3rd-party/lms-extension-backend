@@ -10,5 +10,4 @@ class BaseFile(Schema):
     contents: str
 
 
-class FileMessage(Message, BaseFile):
-    ...
+class FileMessage(Message, BaseFile): ...
