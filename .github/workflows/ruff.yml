@@ -5,6 +5,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: write  # Required for committing and pushing changes
+
 jobs:
   check-formatting:
     runs-on: ubuntu-latest
@@ -19,15 +22,26 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: astral-sh/ruff-action@v3
-      - run: |
-          ruff format
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Ruff
+        run: pip install ruff
+
+      - name: Run Ruff formatter
+        run: ruff format .
+
+      - name: Commit and push changes
+        run: |
           git config user.name "Igor Mamaev"
           git config user.email "igor.mamaev1@gmail.com"
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No wrongly formatted files found."
-          else
+
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add -A
             git commit -m "Run Ruff format"
             git push
+          else
+            echo "No formatting changes detected."
           fi
