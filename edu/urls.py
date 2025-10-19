@@ -5,6 +5,7 @@ from .api import *
 router = Router()
 router.add_router("ping/", ping_router)
 router.add_router("/", upload_router)
+router.add_router("auth/", auth_router)
 
 urlpatterns = [
     # path("ping/", ping, name="ping"),

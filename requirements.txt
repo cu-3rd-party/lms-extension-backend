@@ -5,3 +5,4 @@ beautifulsoup4
 gunicorn
 django-ninja
 ruff
+python-dotenv
