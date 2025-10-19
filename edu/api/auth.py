@@ -16,7 +16,9 @@ router = Router()
 @router.post("register/")
 def register(request, payload: RegistrationSchema):
     if not payload.email.endswith("@edu.centraluniversity.ru"):
-        raise HttpError(400, "Only @edu.centraluniversity.ru emails are allowed")
+        raise HttpError(
+            400, "Only @edu.centraluniversity.ru emails are allowed"
+        )
 
     if User.objects.filter(email=payload.email).exists():
         raise HttpError(400, "Email already registered")
@@ -42,7 +44,9 @@ def register(request, payload: RegistrationSchema):
 @router.post("verify/")
 def verify_email(request, payload: VerificationSchema):
     user = get_object_or_404(User, email=payload.email)
-    verification = get_object_or_404(Verification, user=user, code=payload.code)
+    verification = get_object_or_404(
+        Verification, user=user, code=payload.code
+    )
 
     user.is_active = True
     user.save()
