@@ -10,7 +10,7 @@ router = Router()
 
 # Добавляем в него другие роутеры.
 # Префиксы будут складываться: /api/ + /ping/ и /api/ + /upload/ и т.д.
-#router.add_router("ping/", ping_router)
-router.add_router("", longread_router) # У longread_router нет своего префикса
+# router.add_router("ping/", ping_router)
+router.add_router("", longread_router)  # У longread_router нет своего префикса
 
 # urlpatterns больше не нужен, так как мы работаем с экземпляром Router
