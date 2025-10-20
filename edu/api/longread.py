@@ -4,7 +4,7 @@ from django.db import transaction
 from ninja import Router
 
 # ИЗМЕНЕНИЕ ЗДЕСЬ: Явно импортируем Longread и новую модель LongreadFile
-from ..models import Longread, LongreadFile 
+from ..models import Longread, LongreadFile
 from ..schema import *
 from ..schema.longread import (
     UploadLongreadRequest,
@@ -42,31 +42,38 @@ def upload_longread(request, body: UploadLongreadRequest):
 
     for file_info in body.files:
         if not verify_download_link(file_info.download_link):
-            return 403, Message(message=f"Invalid download link provided: {file_info.download_link}")
+            return 403, Message(
+                message=f"Invalid download link provided: {file_info.download_link}"
+            )
 
         try:
             resp = requests.get(file_info.download_link, timeout=20)
             resp.raise_for_status()
         except requests.RequestException as e:
-            return 500, Message(message=f"Failed to download file from {file_info.download_link}: {e}")
+            return 500, Message(
+                message=f"Failed to download file from {file_info.download_link}: {e}"
+            )
 
         # Теперь эта строка будет работать, так как LongreadFile импортирован
         longread_file = LongreadFile(
-            longread=longread_obj,
-            original_filename=file_info.filename
+            longread=longread_obj, original_filename=file_info.filename
         )
         longread_file.file.save(file_info.filename, ContentFile(resp.content))
 
-    return 201, Message(message="Longread with all files uploaded successfully")
+    return 201, Message(
+        message="Longread with all files uploaded successfully"
+    )
 
 
 @router.get(
     "course/{course_id}/theme/{theme_id}/longread/{longread_id}/",
     response={200: list[BaseFile], 404: NotFoundError},
 )
-def get_longread_contents(request, course_id: int, theme_id: int, longread_id: int):
+def get_longread_contents(
+    request, course_id: int, theme_id: int, longread_id: int
+):
     try:
-        longread_obj = Longread.objects.prefetch_related('files').get(
+        longread_obj = Longread.objects.prefetch_related("files").get(
             course_id=course_id, theme_id=theme_id, lms_id=longread_id
         )
     except Longread.DoesNotExist:
@@ -82,15 +89,19 @@ def get_longread_contents(request, course_id: int, theme_id: int, longread_id: i
     for longread_file in longread_obj.files.all():
         with longread_file.file.open("rb") as f:
             data_bytes = f.read()
-        
+
         encoded_data = base64.b64encode(data_bytes).decode("ascii")
         response_files.append(
-            BaseFile(filename=longread_file.original_filename, contents=encoded_data)
+            BaseFile(
+                filename=longread_file.original_filename, contents=encoded_data
+            )
         )
 
     return 200, response_files
 
+
 # --- Остальные эндпоинты без изменений ---
+
 
 @router.get("courses/", response={200: list[LongreadConciseOut]})
 def get_available_info(request):

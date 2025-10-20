@@ -1,9 +1,11 @@
 from ninja import Schema
 
+
 # Новая схема для описания одного файла при загрузке
 class FileLink(Schema):
     download_link: str
     filename: str
+
 
 class UploadLongreadRequest(Schema):
     course_id: int
