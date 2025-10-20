@@ -10,7 +10,7 @@ class Longread(models.Model):
     longread_title = models.CharField(max_length=255, null=True, blank=True)
     theme_title = models.CharField(max_length=255, null=True, blank=True)
     course_title = models.CharField(max_length=255, null=True, blank=True)
-    
+
     contents = models.FileField(upload_to="longreads")
 
     def __str__(self):

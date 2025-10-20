@@ -61,7 +61,7 @@ def get_longread_contents(
         data_bytes = contents.read()
 
     encoded_data = base64.b64encode(data_bytes).decode("ascii")
-    
+
     return 200, BaseFile(contents=encoded_data)
 
 
