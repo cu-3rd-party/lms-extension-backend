@@ -19,6 +19,10 @@ class LongreadConciseOut(Schema):
     longread_id: int
     theme_id: int
     course_id: int
+    # Добавлены поля с заголовками
+    longread_title: str | None = None
+    theme_title: str | None = None
+    course_title: str | None = None
 
 
 class ThemeOverview(Schema):

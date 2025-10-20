@@ -12,6 +12,7 @@ from ..schema.longread import (
     MissingLongreads,
 )
 from ..services import *
+import base64
 
 router = Router()
 
@@ -27,13 +28,15 @@ def upload_longread(request, body: UploadLongreadRequest):
             message="Failed to download file from the provided link"
         )
 
-    # longread_obj.contents = downloaded_data
     filename = f"{body.longread_id}.pdf"
+    # Обновлено создание объекта с учетом новых полей
     longread_obj = Longread(
         lms_id=body.longread_id,
-        title=body.longread_title,
+        longread_title=body.longread_title,
         theme_id=body.theme_id,
         course_id=body.course_id,
+        theme_title=body.theme_title,
+        course_title=body.course_title,
     )
     longread_obj.contents.save(filename, ContentFile(resp.content))
 
@@ -49,26 +52,33 @@ def get_longread_contents(
 ):
     longread_obj = Longread.objects.filter(
         course_id=course_id, theme_id=theme_id, lms_id=longread_id
-    )
-    if not longread_obj.exists():
-        return 404, NotFoundError()
-    longread_obj = longread_obj.first()
-    with longread_obj.contents.open("r") as contents:
-        data = contents.read()
+    ).first()
 
-    return 200, BaseFile(contents=data)
+    if not longread_obj:
+        return 404, NotFoundError()
+
+    with longread_obj.contents.open("rb") as contents:
+        data_bytes = contents.read()
+
+    encoded_data = base64.b64encode(data_bytes).decode("ascii")
+    
+    return 200, BaseFile(contents=encoded_data)
 
 
 @router.get("courses/", response={200: list[LongreadConciseOut]})
 def get_available_info(request):
     longreads = Longread.objects.all()
+    # Обновлено возвращаемое значение для включения заголовков
     return 200, [
         LongreadConciseOut(
             longread_id=i.lms_id,
             theme_id=i.theme_id,
             course_id=i.course_id,
+            longread_title=i.longread_title,
+            theme_title=i.theme_title,
+            course_title=i.course_title,
         )
-        for i in longreads.all()
+        for i in longreads
     ]
 
 
@@ -83,13 +93,17 @@ def get_course(request, course_id: int):
     if not longreads.exists():
         return 404, NotFoundError()
 
+    # Обновлено возвращаемое значение для включения заголовков
     return 200, [
         LongreadConciseOut(
             longread_id=i.lms_id,
             theme_id=i.theme_id,
             course_id=i.course_id,
+            longread_title=i.longread_title,
+            theme_title=i.theme_title,
+            course_title=i.course_title,
         )
-        for i in longreads.all()
+        for i in longreads
     ]
 
 
