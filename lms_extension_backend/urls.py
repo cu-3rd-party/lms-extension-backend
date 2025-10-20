@@ -19,8 +19,14 @@ from django.contrib import admin
 from django.urls import path
 from ninja import NinjaAPI
 
-api = NinjaAPI()
+from edu.auth import ActiveUserAuth
+from edu.api.auth import router as auth_router
+from edu.api.ping import router as ping_router
+
+api = NinjaAPI(auth=ActiveUserAuth())
 api.add_router("", "edu.urls.router")
+api.add_router("auth/", auth_router, auth=None)
+api.add_router("ping/", ping_router, auth=None)
 
 urlpatterns = [
     path("admin/", admin.site.urls),

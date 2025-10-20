@@ -39,6 +39,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "edu",
+    "rest_framework",
+    "ninja_jwt",
+
 ]
 
 MIDDLEWARE = [
@@ -149,7 +152,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "edu.User"
 
-EMAIL_BACKЕНД = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = "smtp.yandex.ru" 
 EMAIL_PORT = 465  #
