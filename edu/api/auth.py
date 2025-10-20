@@ -20,7 +20,9 @@ router = Router()
 @router.post("register/", response={200: Message, 400: Message})
 def register(request, payload: RegistrationSchema):
     if not payload.email.endswith("@edu.centraluniversity.ru"):
-        return 400, Message(message="Only @edu.centraluniversity.ru emails are allowed")
+        raise HttpError(
+            400, "Only @edu.centraluniversity.ru emails are allowed"
+        )
 
     if User.objects.filter(email=payload.email).exists():
         return 400, Message(message="Email already registered")
@@ -53,7 +55,9 @@ def register(request, payload: RegistrationSchema):
 @router.post("verify/", response={200: Message})
 def verify_email(request, payload: VerificationSchema):
     user = get_object_or_404(User, email=payload.email)
-    verification = get_object_or_404(Verification, user=user, code=payload.code)
+    verification = get_object_or_404(
+        Verification, user=user, code=payload.code
+    )
 
     user.is_active = True
     user.save()
@@ -77,5 +81,4 @@ def login(request, payload: LoginSchema):
             # Пользователь есть, но не подтвердил почту
             raise HttpError(403, "Email not verified")
     else:
-        # Неверные учетные данные
-        raise HttpError(401, "Invalid credentials")
+        raise HttpError(401, "Invalid credentials or email not verified")
