@@ -8,3 +8,4 @@ ruff
 python-dotenv
 django-ninja-jwt
 django-cors-headers
+dotenv
