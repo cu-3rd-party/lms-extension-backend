@@ -6,8 +6,9 @@ class Message(Schema):
 
 
 class BaseFile(Schema):
-    filename: str | None = None
-    contents: str
+    # filename теперь обязательное поле, чтобы клиент знал, что это за файл
+    filename: str
+    contents: str # (base64 encoded)
 
 
 class FileMessage(Message, BaseFile): ...
