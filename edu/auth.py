@@ -2,6 +2,7 @@ from ninja.security import HttpBearer
 from ninja_jwt.authentication import JWTAuth
 from ninja_jwt.tokens import Token
 
+
 # Мы используем JWTAuth из ninja_jwt для удобства,
 # но переопределяем метод authenticate, чтобы добавить проверку is_active
 class ActiveUserAuth(JWTAuth):

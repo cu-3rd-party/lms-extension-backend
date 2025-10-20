@@ -41,7 +41,6 @@ INSTALLED_APPS = [
     "edu",
     "rest_framework",
     "ninja_jwt",
-
 ]
 
 MIDDLEWARE = [

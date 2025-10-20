@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from ninja import Router
 from ninja.errors import HttpError
 from django.contrib.auth import authenticate
-from ninja_jwt.tokens import RefreshToken # Импортируем для создания токенов
+from ninja_jwt.tokens import RefreshToken  # Импортируем для создания токенов
 
 from ..models import User, Verification
 from ..schema.auth import RegistrationSchema, LoginSchema, VerificationSchema
@@ -45,9 +45,8 @@ def register(request, payload: RegistrationSchema):
     except Exception as e:
         # В реальном приложении здесь лучше логировать ошибку
         # Для отладки можно временно вернуть ошибку
-        user.delete() # Откатываем создание пользователя, если письмо не ушло
+        user.delete()  # Откатываем создание пользователя, если письмо не ушло
         return 400, Message(message=f"Could not send email. Error: {e}")
-
 
     return 200, Message(message="Verification code sent to your email")
 
