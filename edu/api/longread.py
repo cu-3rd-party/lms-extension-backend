@@ -20,18 +20,6 @@ from ..services import *
 
 router = Router()
 
-
-def verify_download_link(link: str | None) -> bool:
-    """
-    Проверяет, что ссылка для скачивания начинается с доверенного домена.
-    """
-    if not link:
-        return False
-    return link.startswith(
-        "https://storage.yandexcloud.net/university-lms-materials/"
-    )
-
-
 @router.post("upload/", response={201: Message, 200: Message, 403: Message, 500: Message})
 @transaction.atomic
 def upload_longread(request, body: UploadLongreadRequest):
