@@ -3,6 +3,7 @@ import base64
 from django.core.files.base import ContentFile
 from django.db import transaction
 from ninja import Router
+
 # --- ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлен недостающий импорт ---
 from django.core.files.temp import NamedTemporaryFile
 
@@ -43,9 +44,11 @@ def upload_longread(request, body: UploadLongreadRequest):
         longread_obj.theme_title = body.theme_title
         longread_obj.course_title = body.course_title
         longread_obj.save()
-        
+
         # Немедленно выходим из функции. Цикл загрузки файлов не будет выполнен.
-        return 200, Message(message="Longread metadata updated. Files were not changed.")
+        return 200, Message(
+            message="Longread metadata updated. Files were not changed."
+        )
 
     # Этот код выполнится только если лонгрид был новым (created == True)
     for file_info in body.files:
@@ -55,7 +58,9 @@ def upload_longread(request, body: UploadLongreadRequest):
             )
 
         try:
-            with requests.get(file_info.download_link, timeout=180, stream=True) as resp:
+            with requests.get(
+                file_info.download_link, timeout=180, stream=True
+            ) as resp:
                 resp.raise_for_status()
 
                 with NamedTemporaryFile(delete=True) as temp_file:
@@ -64,7 +69,8 @@ def upload_longread(request, body: UploadLongreadRequest):
                     temp_file.flush()
 
                     longread_file = LongreadFile(
-                        longread=longread_obj, original_filename=file_info.filename
+                        longread=longread_obj,
+                        original_filename=file_info.filename,
                     )
                     longread_file.file.save(file_info.filename, temp_file)
 
