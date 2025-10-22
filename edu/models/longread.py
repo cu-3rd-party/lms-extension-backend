@@ -11,8 +11,6 @@ class Longread(models.Model):
     theme_title = models.CharField(max_length=255, null=True, blank=True)
     course_title = models.CharField(max_length=255, null=True, blank=True)
 
-    # Поле contents убрано. Теперь Longread - это просто группирующая сущность.
-
     def __str__(self):
         return f"{self.longread_title}"
 
@@ -20,6 +18,16 @@ class Longread(models.Model):
         db_table = "longreads"
         verbose_name = "Longread"
         verbose_name_plural = "Longreads"
+        
+        # --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
+        # Это ограничение на уровне базы данных не позволит создать две записи
+        # с одинаковой комбинацией lms_id, course_id и theme_id.
+        constraints = [
+            models.UniqueConstraint(
+                fields=['lms_id', 'course_id', 'theme_id'],
+                name='unique_longread_per_course_theme'
+            )
+        ]
 
 
 # Функция для генерации пути сохранения файлов

@@ -1,9 +1,11 @@
 import requests
+import base64
 from django.core.files.base import ContentFile
 from django.db import transaction
 from ninja import Router
+# --- ИЗМЕНЕНИЕ ЗДЕСЬ: Добавлен недостающий импорт ---
+from django.core.files.temp import NamedTemporaryFile
 
-# ИЗМЕНЕНИЕ ЗДЕСЬ: Явно импортируем Longread и новую модель LongreadFile
 from ..models import Longread, LongreadFile
 from ..schema import *
 from ..schema.longread import (
@@ -14,14 +16,28 @@ from ..schema.longread import (
     MissingLongreads,
 )
 from ..services import *
-import base64
+
 
 router = Router()
 
 
-@router.post("upload/", response={201: Message, 403: Message, 500: Message})
+def verify_download_link(link: str | None) -> bool:
+    """
+    Проверяет, что ссылка для скачивания начинается с доверенного домена.
+    """
+    if not link:
+        return False
+    return link.startswith(
+        "https://storage.yandexcloud.net/university-lms-materials/"
+    )
+
+
+@router.post("upload/", response={201: Message, 200: Message, 403: Message, 500: Message})
 @transaction.atomic
 def upload_longread(request, body: UploadLongreadRequest):
+    """
+    Загружает новый лонгрид или обновляет метаданные существующего.
+    """
     longread_obj, created = Longread.objects.get_or_create(
         lms_id=body.longread_id,
         course_id=body.course_id,
@@ -34,12 +50,16 @@ def upload_longread(request, body: UploadLongreadRequest):
     )
 
     if not created:
+        # Лонгрид уже существовал. Обновляем его названия на случай, если они изменились.
         longread_obj.longread_title = body.longread_title
         longread_obj.theme_title = body.theme_title
         longread_obj.course_title = body.course_title
         longread_obj.save()
-        longread_obj.files.all().delete()
+        
+        # Немедленно выходим из функции. Цикл загрузки файлов не будет выполнен.
+        return 200, Message(message="Longread metadata updated. Files were not changed.")
 
+    # Этот код выполнится только если лонгрид был новым (created == True)
     for file_info in body.files:
         if not verify_download_link(file_info.download_link):
             return 403, Message(
@@ -47,21 +67,27 @@ def upload_longread(request, body: UploadLongreadRequest):
             )
 
         try:
-            resp = requests.get(file_info.download_link, timeout=20)
-            resp.raise_for_status()
+            with requests.get(file_info.download_link, timeout=180, stream=True) as resp:
+                resp.raise_for_status()
+
+                with NamedTemporaryFile(delete=True) as temp_file:
+                    for chunk in resp.iter_content(chunk_size=8192):
+                        temp_file.write(chunk)
+                    temp_file.flush()
+
+                    longread_file = LongreadFile(
+                        longread=longread_obj, original_filename=file_info.filename
+                    )
+                    longread_file.file.save(file_info.filename, temp_file)
+
         except requests.RequestException as e:
+            transaction.set_rollback(True)
             return 500, Message(
                 message=f"Failed to download file from {file_info.download_link}: {e}"
             )
 
-        # Теперь эта строка будет работать, так как LongreadFile импортирован
-        longread_file = LongreadFile(
-            longread=longread_obj, original_filename=file_info.filename
-        )
-        longread_file.file.save(file_info.filename, ContentFile(resp.content))
-
     return 201, Message(
-        message="Longread with all files uploaded successfully"
+        message="New longread with all files uploaded successfully"
     )
 
 
@@ -83,9 +109,6 @@ def get_longread_contents(
         return 200, []
 
     response_files = []
-    # Здесь также используется LongreadFile, но через longread_obj.files.all()
-    # поэтому явный импорт не был бы строго обязателен для этой функции,
-    # но он необходим для upload_longread
     for longread_file in longread_obj.files.all():
         with longread_file.file.open("rb") as f:
             data_bytes = f.read()
@@ -98,9 +121,6 @@ def get_longread_contents(
         )
 
     return 200, response_files
-
-
-# --- Остальные эндпоинты без изменений ---
 
 
 @router.get("courses/", response={200: list[LongreadConciseOut]})
@@ -163,8 +183,10 @@ def fetch_longreads(request, body: FetchLongreadsRequest):
         for theme in course.themes:
             for longread_id in theme.longreads:
                 triples.append((course.course_id, theme.theme_id, longread_id))
+
     if not triples:
         return 200, {"missing_longreads": []}
+
     existing = set(
         Longread.objects.filter(
             course_id__in=[c for c, _, _ in triples],
@@ -172,5 +194,6 @@ def fetch_longreads(request, body: FetchLongreadsRequest):
             lms_id__in=[l for _, _, l in triples],
         ).values_list("course_id", "theme_id", "lms_id")
     )
+
     missing = [l for (c, t, l) in triples if (c, t, l) not in existing]
     return 200, {"missing_longreads": missing}
