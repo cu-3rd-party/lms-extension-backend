@@ -165,6 +165,6 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 CORS_ORIGIN_ALLOW_ALL = True
 
 NINJA_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=3),
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=3),
 }
