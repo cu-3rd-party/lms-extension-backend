@@ -21,7 +21,11 @@ from ..services import *
 
 router = Router()
 
-@router.post("upload/", response={201: Message, 200: Message, 403: Message, 500: Message})
+
+@router.post(
+    "upload/",
+    response={201: Message, 200: Message, 403: Message, 500: Message},
+)
 @transaction.atomic
 def upload_longread(request, body: UploadLongreadRequest):
     """
