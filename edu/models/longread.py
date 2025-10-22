@@ -18,14 +18,14 @@ class Longread(models.Model):
         db_table = "longreads"
         verbose_name = "Longread"
         verbose_name_plural = "Longreads"
-        
+
         # --- ИЗМЕНЕНИЕ ЗДЕСЬ ---
         # Это ограничение на уровне базы данных не позволит создать две записи
         # с одинаковой комбинацией lms_id, course_id и theme_id.
         constraints = [
             models.UniqueConstraint(
-                fields=['lms_id', 'course_id', 'theme_id'],
-                name='unique_longread_per_course_theme'
+                fields=["lms_id", "course_id", "theme_id"],
+                name="unique_longread_per_course_theme",
             )
         ]
 
