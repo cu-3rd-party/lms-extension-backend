@@ -4,6 +4,7 @@ from ninja import Router
 # Импортируем роутеры для конкретных функций
 from .api.longread import router as longread_router
 from .api.ping import router as ping_router
+from .api.readme import router as readme_router
 
 # Создаем главный роутер для приложения "edu"
 router = Router()
@@ -14,3 +15,5 @@ router = Router()
 router.add_router("", longread_router)  # У longread_router нет своего префикса
 
 # urlpatterns больше не нужен, так как мы работаем с экземпляром Router
+
+router.add_router("", readme_router)  
