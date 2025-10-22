@@ -16,4 +16,4 @@ router.add_router("", longread_router)  # У longread_router нет своего
 
 # urlpatterns больше не нужен, так как мы работаем с экземпляром Router
 
-router.add_router("", readme_router)  
+router.add_router("", readme_router)
