@@ -5,3 +5,7 @@ beautifulsoup4
 gunicorn
 django-ninja
 ruff
+python-dotenv
+django-ninja-jwt
+django-cors-headers
+dotenv
